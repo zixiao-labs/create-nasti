@@ -1,0 +1,19 @@
+{
+  "name": "nasti-vue-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nasti dev",
+    "build": "nasti build",
+    "preview": "nasti preview"
+  },
+  "dependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@nasti-toolchain/nasti": "^1.7.0",
+    "@vue/compiler-sfc": "^3.5.0",
+    "typescript": "^5.7.0"
+  }
+}

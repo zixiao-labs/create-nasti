@@ -1,0 +1,23 @@
+{
+  "name": "nasti-react-tanstack-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nasti dev",
+    "build": "nasti build",
+    "preview": "nasti preview"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "^1.170.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@nasti-toolchain/nasti": "^1.7.0",
+    "@nasti-toolchain/plugin-tanstack": "^1.0.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

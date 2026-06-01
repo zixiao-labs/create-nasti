@@ -1,0 +1,46 @@
+{
+  "name": "create-nasti",
+  "version": "1.0.0",
+  "description": "Scaffold a new Nasti project — npm create nasti@latest",
+  "keywords": [
+    "Nasti",
+    "create",
+    "scaffold",
+    "rolldown",
+    "tanstack"
+  ],
+  "homepage": "https://github.com/zixiao-labs/create-nasti#readme",
+  "bugs": {
+    "url": "https://github.com/zixiao-labs/create-nasti/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zixiao-labs/create-nasti.git"
+  },
+  "license": "MIT",
+  "author": "Zixiao Laboratories",
+  "type": "module",
+  "bin": {
+    "create-nasti": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@clack/prompts": "^1.5.0",
+    "@types/node": "^22.0.0",
+    "mri": "^1.2.0",
+    "picocolors": "^1.1.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  }
+}

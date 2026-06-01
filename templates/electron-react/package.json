@@ -1,0 +1,25 @@
+{
+  "name": "nasti-electron-react-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nasti dev",
+    "build": "nasti build",
+    "preview": "nasti preview",
+    "electron": "nasti electron",
+    "electron:build": "nasti electron-build"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@nasti-toolchain/nasti": "^1.7.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "electron": "^41.0.0",
+    "typescript": "^5.7.0"
+  }
+}
