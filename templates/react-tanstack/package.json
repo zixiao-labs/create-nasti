@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nasti dev",
+    "dev:bundle": "nasti dev --bundle",
     "build": "nasti build",
     "preview": "nasti preview"
   },
@@ -14,7 +15,7 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@nasti-toolchain/nasti": "^1.7.0",
+    "@nasti-toolchain/nasti": "^2.0.0",
     "@nasti-toolchain/plugin-tanstack": "^1.0.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

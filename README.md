@@ -56,6 +56,28 @@ npm install        # 若创建时未自动安装
 npm run dev
 ```
 
+## Nasti 2.0 亮点
+
+脚手架生成的项目默认基于 **[Nasti](https://github.com/zixiao-labs/Nasti) 2.0**（Rolldown / Oxc 驱动）：
+
+- **per-chunk CSS 抽取** —— 生产构建按 chunk 自动拆分 CSS、带 hash 文件名并注入 `<link>`，零配置。
+- **实验性完整打包 dev 模式** —— Web 模板（`react` / `react-tanstack` / `vue`）内置 `dev:bundle` 脚本，走 Rolldown 原生 dev 引擎提供内存打包产物：
+
+  ```bash
+  npm run dev:bundle        # = nasti dev --bundle
+  ```
+
+  默认 `npm run dev` 仍是标准开发模式；`dev:bundle` 为 opt-in 尝鲜，HMR 行为以标准 `dev` 为准。
+
+- **调试输出** —— 任意 `nasti` 命令都可加调试 flag 观察内部流程：
+
+  ```bash
+  nasti build --verbose         # 全部 nasti:* 命名空间
+  nasti dev -d build,hmr        # 仅指定命名空间
+  nasti dev -f rolldown         # 按内容过滤
+  nasti build --logLevel warn   # 调日志级别
+  ```
+
 ## 命令行选项
 
 | 选项 | 说明 |
