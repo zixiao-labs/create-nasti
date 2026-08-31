@@ -10,6 +10,8 @@ import test from 'node:test'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const cli = join(root, 'dist/index.js')
+// --import is an ESM specifier: a bare Windows drive path is parsed as a URL scheme.
+const terminalPreload = new URL('./fixtures/terminal.mjs', import.meta.url).href
 const templates = ['react', 'react-tanstack', 'vue', 'electron-react']
 const fixture = await readFile(new URL('./fixtures/package-manager.cjs', import.meta.url), 'utf8')
 
@@ -21,7 +23,7 @@ async function workspace(t) {
 
 function startCli(t, cwd, args, env = {}, terminal = false) {
   const child = spawn(process.execPath, [
-    ...(terminal ? ['--import', join(root, 'test/fixtures/terminal.mjs')] : []),
+    ...(terminal ? ['--import', terminalPreload] : []),
     cli, ...args,
   ], {
     cwd,
@@ -115,6 +117,13 @@ for (const pm of ['npm', 'pnpm', 'yarn', 'bun']) {
   })
 }
 
+test('terminal preload starts successfully with a file URL', { timeout: 15_000 }, async (t) => {
+  const cwd = await workspace(t)
+  const result = await startCli(t, cwd, ['--help'], {}, true).completed
+  assert.equal(result.code, 0, result.output)
+  assert.match(result.output, /Usage/)
+})
+
 test('spinner renders multiple frames while installation is still running', { timeout: 15_000 }, async (t) => {
   const cwd = await workspace(t)
   const env = await fakeManager(cwd, 'pnpm')
@@ -123,8 +132,12 @@ test('spinner renders multiple frames while installation is still running', { ti
     npm_config_user_agent: 'pnpm/11.24.0 npm/? node/v24.11.1',
     MOCK_PM_DELAY: '2000',
   }, true)
-  await waitFor(() => (running.output().match(/Installing dependencies with pnpm/g) ?? []).length >= 3,
-    'The spinner must animate before the package manager exits')
+  await waitFor(() => {
+    const diagnostic = `CLI exited before the spinner animated:\n${running.output()}`
+    assert.equal(running.child.exitCode, null, diagnostic)
+    assert.equal(running.child.signalCode, null, diagnostic)
+    return (running.output().match(/Installing dependencies with pnpm/g) ?? []).length >= 3
+  }, 'The spinner must animate before the package manager exits')
   assert.equal(running.child.exitCode, null)
   assert.doesNotMatch(running.output(), /Installed dependencies with/)
   const result = await running.completed
