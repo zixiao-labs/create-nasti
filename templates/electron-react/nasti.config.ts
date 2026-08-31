@@ -8,7 +8,7 @@ export default defineConfig({
     preload: 'src/electron/preload.ts',
     mainFormat: 'cjs',
     preloadFormat: 'cjs',
-    // Electron 41 捆绑 Node 22 / Chromium 138
+    // 主进程 / preload 使用 Node 22 兼容的输出目标
     nodeTarget: 'node22',
     minVersion: 41,
   },

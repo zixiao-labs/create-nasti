@@ -46,7 +46,7 @@ npm create nasti@latest my-app -- --template react-tanstack
 | `react-tanstack` | React + [TanStack Router](https://tanstack.com/router) 文件式路由，构建期自动代码分割（**头牌**） |
 | `react` | 最小 React 单页应用 |
 | `vue` | Vue 3 单文件组件（SFC） |
-| `electron-react` | Electron 41+ 主进程 / Preload + React 渲染层 |
+| `electron-react` | Electron 41+ 主进程 / Preload + React 渲染层，`dev` 直接启动桌面窗口 |
 
 创建完成后：
 
@@ -56,9 +56,13 @@ npm install        # 若创建时未自动安装
 npm run dev
 ```
 
-## Nasti 2.0 亮点
+Electron 模板中，`npm run dev` 启动桌面开发环境，`npm run build` 同时构建主进程、Preload 和渲染层。只调试渲染层时可运行 `npm run dev:renderer`；原有 `electron` / `electron:build` 脚本仍可使用。`preview` 仅预览 Web 渲染层，不会启动桌面窗口。
 
-脚手架生成的项目默认基于 **[Nasti](https://github.com/zixiao-labs/Nasti) 2.0**（Rolldown / Oxc 驱动）：
+## Nasti 2.5 模板基线
+
+脚手架生成的项目默认基于 **[Nasti](https://github.com/zixiao-labs/Nasti) ^2.5.2**（Rolldown / Oxc 驱动），会接收后续兼容的 2.x 更新。React 使用 ^19.2.8，Vue 与 `@vue/compiler-sfc` 使用匹配的 ^3.5.42 稳定版本，TanStack Router 使用 ^1.170.32，配套插件保持最新发布版 ^1.0.4。
+
+模板保持最小配置，直接使用新版默认的 JSX / Fast Refresh、Vue SFC 与构建管线；React Compiler、RSC 和 Vue 3.6 Vapor Mode 属于显式启用的实验功能，不默认添加依赖或打开配置。需要时请参考 [Nasti 官方文档](https://github.com/zixiao-labs/Nasti#react-pipeline)。
 
 - **per-chunk CSS 抽取** —— 生产构建按 chunk 自动拆分 CSS、带 hash 文件名并注入 `<link>`，零配置。
 - **实验性完整打包 dev 模式** —— Web 模板（`react` / `react-tanstack` / `vue`）内置 `dev:bundle` 脚本，走 Rolldown 原生 dev 引擎提供内存打包产物：
@@ -93,10 +97,25 @@ npm run dev
 
 脚手架通过 `npm_config_user_agent` 自动探测你使用的包管理器（npm / pnpm / yarn / bun），安装命令与「下一步」提示都会与之匹配。也可用 `--pm` 显式指定。
 
+安装依赖期间显示动态 spinner 和耗时；CI 中使用简化日志。安装失败会显示错误原因及最近的安装日志，并保留生成的项目和手动安装命令。按 Ctrl+C 可取消安装，不会继续初始化 Git 或显示成功提示。
+
 ## 系统要求
 
-- Node.js **≥ 20**
-- `electron-react` 模板需要 **Electron 41+**（捆绑 Node 22 / Chromium 138）
+- Node.js **^20.19.0 或 ≥ 22.12.0**，与 Nasti / Rolldown 的运行要求一致（不支持 Node 21）。
+- `electron-react` 模板默认安装 **Electron ^41**，主进程 / Preload 的编译目标为 `node22`；这不等同于运行脚手架所需的宿主 Node 版本。
+
+## 开发与验证
+
+```bash
+npm ci
+npm run typecheck
+npm test
+npm run test:templates
+```
+
+`npm test` 覆盖四套模板生成、包管理器选择、安装期间 spinner 动画、安装失败 / 大量日志 / 取消等回归场景，不访问网络。
+
+`test:templates` 在临时目录中逐一生成四套模板，联网安装真实依赖并验证生产构建、TypeScript 检查及开发入口。Electron 仅验证编译产物和渲染层，不下载或启动桌面二进制。
 
 ## License
 

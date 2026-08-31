@@ -28,15 +28,18 @@
     "templates"
   ],
   "engines": {
-    "node": ">=20"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/cli.test.mjs",
+    "test:templates": "npm run build && node test/smoke-templates.mjs",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@clack/prompts": "^1.5.0",
+    "@clack/prompts": "^1.7.0",
     "@types/node": "^22.0.0",
     "mri": "^1.2.0",
     "picocolors": "^1.1.0",

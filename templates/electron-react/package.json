@@ -3,19 +3,24 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist/main.cjs",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
-    "dev": "nasti dev",
-    "build": "nasti build",
-    "preview": "nasti preview",
+    "dev": "nasti electron",
+    "dev:renderer": "nasti dev",
+    "build": "nasti electron-build",
+    "preview": "nasti preview --outDir dist/renderer",
     "electron": "nasti electron",
     "electron:build": "nasti electron-build"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@nasti-toolchain/nasti": "^2.0.0",
+    "@nasti-toolchain/nasti": "^2.5.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
