@@ -14,9 +14,10 @@ import {
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
+import { installDependencies, type PackageManager } from './install.js'
 
 type TemplateId = 'react-tanstack' | 'react' | 'vue' | 'electron-react'
-type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun'
+const PACKAGE_MANAGERS: PackageManager[] = ['npm', 'pnpm', 'yarn', 'bun']
 
 const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
   { id: 'react-tanstack', label: 'React + TanStack Router', hint: 'file-based routing, build-time auto code-splitting' },
@@ -128,6 +129,11 @@ async function main(): Promise<void> {
   console.log()
   p.intro(pc.bgCyan(pc.black(' create-nasti ')))
 
+  const pm = (argv.pm as PackageManager | undefined) ?? detectPm()
+  if (!PACKAGE_MANAGERS.includes(pm)) {
+    throw new Error(`Unknown package manager "${pm}". Expected: ${PACKAGE_MANAGERS.join(', ')}.`)
+  }
+
   // 1. Target directory
   let dirArg = argv._[0] != null ? String(argv._[0]) : undefined
   if (!dirArg) {
@@ -185,10 +191,7 @@ async function main(): Promise<void> {
   injectName(targetDir, projectName)
   scaffold.stop(`Scaffolded ${pc.cyan(template)} into ${pc.cyan(dirArg)}`)
 
-  // 5. Package manager
-  const pm = (argv.pm as PackageManager | undefined) ?? detectPm()
-
-  // 6. Install dependencies
+  // 5. Install dependencies
   if (install === undefined) {
     const ans = await p.confirm({ message: `Install dependencies with ${pc.cyan(pm)}?` })
     if (p.isCancel(ans)) bail()
@@ -196,24 +199,15 @@ async function main(): Promise<void> {
   }
   let installed = false
   if (install) {
-    const s = p.spinner()
-    s.start(`Installing dependencies with ${pm}`)
-    const res = spawnSync(pm, ['install'], {
-      cwd: targetDir,
-      stdio: 'pipe',
-      shell: process.platform === 'win32',
-    })
-    if (res.status === 0) {
-      installed = true
-      s.stop(`Installed dependencies with ${pm}`)
-    } else {
-      s.stop(pc.yellow('Could not install dependencies — you can run it manually later.'))
-      const stderr = res.stderr?.toString().trim()
-      if (stderr) p.log.error(stderr.split('\n').slice(-5).join('\n'))
+    const result = await installDependencies(pm, targetDir)
+    if (result === 'cancelled') {
+      process.exitCode = 130
+      return
     }
+    installed = result === 'installed'
   }
 
-  // 7. Git
+  // 6. Git
   if (git === undefined) {
     const ans = await p.confirm({ message: 'Initialize a git repository?' })
     if (p.isCancel(ans)) bail()
@@ -223,13 +217,13 @@ async function main(): Promise<void> {
     spawnSync('git', ['init'], { cwd: targetDir, stdio: 'ignore', shell: process.platform === 'win32' })
   }
 
-  // 8. Next steps
+  // 7. Next steps
   const steps = [`cd ${dirArg}`]
   if (!installed) steps.push(`${pm} install`)
   steps.push(runScript(pm, 'dev'))
   let note = steps.map((line) => pc.cyan(line)).join('\n')
   if (template === 'electron-react') {
-    note += `\n\n${pc.dim('# desktop window (needs electron@^41, Node 22):')}\n${pc.cyan(runScript(pm, 'electron'))}`
+    note += `\n\n${pc.dim('# build the desktop app:')}\n${pc.cyan(runScript(pm, 'build'))}`
   }
   p.note(note, 'Next steps')
   p.outro(`Done. Happy hacking with ${pc.cyan('Nasti')}!`)

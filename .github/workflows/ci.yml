@@ -7,14 +7,20 @@ on:
     branches: [main]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ["20.19.0", "22.12.0", "24"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "24"
+          node-version: ${{ matrix.node }}
       - name: Install dependencies
-        run: npm install
-      - name: Build project
-        run: npm run build
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build and test CLI
+        run: npm test
