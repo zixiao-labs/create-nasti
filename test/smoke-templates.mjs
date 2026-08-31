@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { setTimeout as delay } from 'node:timers/promises'
+import { stripVTControlCharacters } from 'node:util'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const workspace = await mkdtemp(join(tmpdir(), 'create-nasti-smoke-'))
@@ -37,7 +38,7 @@ async function checkDev(project, template) {
     let origin
     while (Date.now() < deadline) {
       if (spawnError) throw spawnError
-      origin = output.match(/http:\/\/localhost:(\d+)/)?.[0]
+      origin = stripVTControlCharacters(output).match(/http:\/\/localhost:(\d+)/)?.[0]
       if (origin) break
       if (server.exitCode !== null) throw new Error(`Dev server exited:\n${output}`)
       await delay(100)
