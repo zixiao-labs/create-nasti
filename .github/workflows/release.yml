@@ -12,15 +12,23 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
       - name: Install dependencies
-        run: npm install
-      - name: Build project
-        run: npm run build
+        run: npm ci
+      - name: Verify release version
+        run: node --input-type=module -e "import fs from 'node:fs'; const pkg = JSON.parse(fs.readFileSync('package.json')); if (process.env.GITHUB_REF_NAME !== 'v' + pkg.version) throw new Error('Tag and package version must match')"
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build and test CLI
+        run: npm test
+      - name: Test templates
+        run: npm run test:templates
       - name: Verify build output
         run: |
           if [ ! -d "dist" ]; then
@@ -43,10 +51,10 @@ jobs:
         # === 首次配置步骤 ===
         # 1. npmjs.com → 登录 → 包页面 → Settings → Trusted Publishers → 添加：
         #    - Repository owner: zixiao-labs
-        #    - Repository name: Nasti
-        #    - Workflow filename: publish.yml
-        #    - Environment name: npm-publish
-        # 2. GitHub repo → Settings → Environments → 新建 "npm-publish"
+        #    - Repository name: create-nasti
+        #    - Workflow filename: release.yml
+        #    - Environment name: production
+        # 2. GitHub repo → Settings → Environments → 新建 "production"
         #    （可在此环境中配置 Required reviewers 或 Deployment branches 限制）
         #
         # 注意：Trusted Publisher 使用 OIDC token 替代 NPM_TOKEN，

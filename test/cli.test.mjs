@@ -12,7 +12,8 @@ const root = fileURLToPath(new URL('..', import.meta.url))
 const cli = join(root, 'dist/index.js')
 // --import is an ESM specifier: a bare Windows drive path is parsed as a URL scheme.
 const terminalPreload = new URL('./fixtures/terminal.mjs', import.meta.url).href
-const templates = ['react', 'react-tanstack', 'vue', 'electron-react']
+const nodeVersionPreload = new URL('./fixtures/node-version.mjs', import.meta.url).href
+const templates = ['react', 'react-tanstack', 'vue', 'solid', 'react-start', 'solid-start', 'electron-react']
 const fixture = await readFile(new URL('./fixtures/package-manager.cjs', import.meta.url), 'utf8')
 
 async function workspace(t) {
@@ -24,6 +25,7 @@ async function workspace(t) {
 function startCli(t, cwd, args, env = {}, terminal = false) {
   const child = spawn(process.execPath, [
     ...(terminal ? ['--import', terminalPreload] : []),
+    ...(env.MOCK_NODE_VERSION ? ['--import', nodeVersionPreload] : []),
     cli, ...args,
   ], {
     cwd,
@@ -74,14 +76,28 @@ async function waitFor(check, message) {
 for (const template of templates) {
   test(`scaffolds ${template} with the current Nasti baseline`, { timeout: 15_000 }, async (t) => {
     const cwd = await workspace(t)
-    const result = await startCli(t, cwd, ['my-app', '-t', template, '--no-install', '--no-git', '--pm', 'npm']).completed
+    const isStart = template.endsWith('-start')
+    const result = await startCli(t, cwd, ['my-app', '-t', template, '--no-install', '--no-git', '--pm', 'npm'], {
+      // Scaffolding is offline; exercise Start generation on every CI Node version.
+      MOCK_NODE_VERSION: '22.12.0',
+    }).completed
     assert.equal(result.code, 0, result.output)
     const project = join(cwd, 'my-app')
     const pkg = JSON.parse(await readFile(join(project, 'package.json'), 'utf8'))
     assert.equal(pkg.name, 'my-app')
-    assert.equal(pkg.devDependencies['@nasti-toolchain/nasti'], '^2.5.2')
-    assert.equal(pkg.engines.node, '^20.19.0 || >=22.12.0')
-    assert.match(await readFile(join(project, 'index.html'), 'utf8'), /<title>my-app<\/title>/)
+    assert.equal(pkg.devDependencies['@nasti-toolchain/nasti'], '^2.8.1')
+    assert.equal(pkg.engines.node, isStart ? '>=22.12.0' : '^20.19.0 || >=22.12.0')
+    if (isStart) {
+      await assert.rejects(readFile(join(project, 'index.html')), { code: 'ENOENT' })
+      assert.match(await readFile(join(project, 'src/router.tsx'), 'utf8'), /export function getRouter/)
+      assert.equal(pkg.devDependencies['@tanstack/start-plugin-core'], '1.171.55')
+      assert.equal(pkg.dependencies[`@tanstack/${template.startsWith('solid') ? 'solid' : 'react'}-start`], '1.169.4')
+      assert.equal(pkg.scripts.preview, 'nasti preview')
+      assert.equal(pkg.scripts['dev:bundle'], undefined)
+      assert.match(await readFile(join(project, '.gitignore'), 'utf8'), /\.nasti/)
+    } else {
+      assert.match(await readFile(join(project, 'index.html'), 'utf8'), /<title>my-app<\/title>/)
+    }
     assert.match(await readFile(join(project, '.gitignore'), 'utf8'), /node_modules/)
     await assert.rejects(readFile(join(project, '_gitignore')), { code: 'ENOENT' })
     assert.match(result.output, /npm install/)
@@ -92,14 +108,49 @@ for (const template of templates) {
       assert.equal(pkg.scripts.build, 'nasti electron-build')
       assert.equal(pkg.scripts['dev:renderer'], 'nasti dev')
       assert.equal(pkg.scripts.preview, 'nasti preview --outDir dist/renderer')
-    } else {
+    } else if (!isStart) {
       assert.equal(pkg.scripts['dev:bundle'], 'nasti dev --bundle')
     }
+    if (template === 'react-tanstack' || isStart) {
+      assert.equal(pkg.devDependencies['@tanstack/router-generator'], '1.167.46')
+      assert.equal(pkg.devDependencies['@nasti-toolchain/plugin-tanstack'], undefined)
+      assert.match(await readFile(join(project, 'nasti.config.ts'), 'utf8'), /import .*tanstack.* from '@nasti-toolchain\/nasti'/)
+    }
+    if (template === 'react-tanstack') {
+      assert.match(await readFile(join(project, 'src/routes/about.lazy.tsx'), 'utf8'), /createLazyFileRoute/)
+    }
+    if (template.startsWith('solid')) {
+      const tsconfig = JSON.parse(await readFile(join(project, 'tsconfig.json'), 'utf8'))
+      assert.equal(tsconfig.compilerOptions.jsx, 'preserve')
+      assert.equal(tsconfig.compilerOptions.jsxImportSource, 'solid-js')
+      for (const dependency of ['@babel/core', 'babel-preset-solid', 'solid-refresh']) {
+        assert.ok(pkg.devDependencies[dependency], dependency)
+      }
+      if (isStart) {
+        assert.match(await readFile(join(project, 'src/routes/__root.tsx'), 'utf8'), /<HydrationScript \/>/)
+      }
+    }
+    assert.equal(pkg.dependencies['@tanstack/redact'], undefined)
     if (template === 'vue') {
       assert.equal(pkg.dependencies.vue, pkg.devDependencies['@vue/compiler-sfc'])
       assert.match(pkg.dependencies.vue, /^\^3\.5\./)
     }
   })
+}
+
+for (const template of ['react-start', 'solid-start']) {
+  for (const version of ['20.19.0', '22.11.0']) {
+    test(`rejects ${template} on Node ${version} before creating files or installing`, { timeout: 15_000 }, async (t) => {
+      const cwd = await workspace(t)
+      const result = await startCli(t, cwd, ['my-app', '-t', template, '--install', '--no-git'], {
+        MOCK_NODE_VERSION: version,
+      }).completed
+      assert.equal(result.code, 1, result.output)
+      assert.match(result.output, /requires Node\.js >=22\.12\.0/)
+      assert.doesNotMatch(result.output, /Installing dependencies/)
+      await assert.rejects(readFile(join(cwd, 'my-app/package.json')), { code: 'ENOENT' })
+    })
+  }
 }
 
 for (const pm of ['npm', 'pnpm', 'yarn', 'bun']) {
@@ -122,6 +173,7 @@ test('terminal preload starts successfully with a file URL', { timeout: 15_000 }
   const result = await startCli(t, cwd, ['--help'], {}, true).completed
   assert.equal(result.code, 0, result.output)
   assert.match(result.output, /Usage/)
+  for (const template of templates) assert.ok(result.output.includes(template), template)
 })
 
 test('spinner renders multiple frames while installation is still running', { timeout: 15_000 }, async (t) => {
