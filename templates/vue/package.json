@@ -16,7 +16,7 @@
     "vue": "^3.5.42"
   },
   "devDependencies": {
-    "@nasti-toolchain/nasti": "^2.8.1",
+    "@nasti-toolchain/nasti": "^2.9.0",
     "@vue/compiler-sfc": "^3.5.42",
     "typescript": "^5.7.0"
   }

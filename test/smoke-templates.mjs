@@ -63,14 +63,43 @@ async function checkServer(project, template, command = 'dev') {
       const about = await fetch(new URL('/about', origin), { signal: AbortSignal.timeout(10_000) })
       assert.equal(about.status, 200)
       assert.match(await about.text(), /<h1[^>]*>About<\/h1>/)
-      for (const path of ['/server/server.mjs', '/src/router.tsx']) {
+      const privatePaths = [
+        '/server/server.mjs',
+        '/.nasti/start/server.ts',
+        '/src/routes/index.tsx?raw',
+        '/src/routes/index.tsx?tss-serverfn-split',
+        '/src/routes/index.tsx?x=tss-serverfn-split',
+      ]
+      if (command === 'preview') privatePaths.push('/src/router.tsx')
+      for (const path of privatePaths) {
         const privateFile = await fetch(new URL(path, origin), { signal: AbortSignal.timeout(10_000) })
         assert.equal(privateFile.status, 404, `${command} must not serve ${path}`)
+        assert.doesNotMatch(await privateFile.text(), /Hello from the server!/)
       }
-      const asset = html.match(/(?:src|href)="([^"]*\/assets\/[^"]+\.(?:js|css))"/)?.[1]
-      assert.ok(asset, `SSR response must reference a client asset:\n${html}`)
-      const clientAsset = await fetch(new URL(asset, origin), { signal: AbortSignal.timeout(10_000) })
-      assert.equal(clientAsset.status, 200)
+      if (command === 'dev') {
+        // Start 2.9 serves compiled client modules for HMR, never raw server handlers.
+        for (const path of ['/src/router.tsx', '/src/routes/index.tsx']) {
+          const module = await fetch(new URL(path, origin), { signal: AbortSignal.timeout(10_000) })
+          assert.equal(module.status, 200, `dev must compile ${path} for the client`)
+          assert.match(module.headers.get('content-type') ?? '', /javascript/)
+          const code = await module.text()
+          assert.ok(code.length > 0)
+          assert.doesNotMatch(code, /Hello from the server!/)
+        }
+      }
+      const scripts = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1])
+      assert.ok(scripts.length > 0, `SSR response must reference a client script:\n${html}`)
+      if (command === 'preview') {
+        assert.ok(scripts.some((src) => /\/assets\/[^"]+\.js$/.test(src)), 'preview must use built client assets')
+      }
+      for (const script of scripts) {
+        const clientAsset = await fetch(new URL(script, origin), { signal: AbortSignal.timeout(10_000) })
+        assert.equal(clientAsset.status, 200, `${command} must serve ${script}`)
+        assert.match(clientAsset.headers.get('content-type') ?? '', /javascript/)
+        const code = await clientAsset.text()
+        assert.ok(code.length > 0)
+        assert.doesNotMatch(code, /Hello from the server!/)
+      }
       console.log(`${command} SSR, server-function loader, routes and client assets verified: ${template}`)
       return
     }

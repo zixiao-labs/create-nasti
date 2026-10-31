@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Upgrade all seven templates to Nasti `^2.9.0`, retaining the native Router /
+  Start integrations, pinned framework compilers and Start's Node >=22.12 gate.
+- Update Start guides for state-preserving React/Solid Refresh, loader-data
+  refresh on server edits and the remaining full-reload / SSR compilation limits.
+- Verify Start's compiled client modules and scripts in development while keeping
+  raw source, server-function provider queries and generated server entries private.
+
 ## 3.1.0
 
 - Upgrade all generated applications to Nasti `^2.8.1`, including the 2.8 native

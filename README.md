@@ -61,9 +61,9 @@ npm run dev
 
 Electron 模板中，`npm run dev` 启动桌面开发环境，`npm run build` 同时构建主进程、Preload 和渲染层。只调试渲染层时可运行 `npm run dev:renderer`；原有 `electron` / `electron:build` 脚本仍可使用。`preview` 仅预览 Web 渲染层，不会启动桌面窗口。
 
-## Nasti 2.8 模板基线
+## Nasti 2.9 模板基线
 
-脚手架生成的项目默认基于 **[Nasti](https://github.com/zixiao-labs/Nasti/releases/tag/v2.8.1) ^2.8.1**（Rolldown / Oxc 驱动），会接收后续兼容的 2.x 更新。2.8.1 包含 2.8 的原生框架集成，并修复 npm 在解析可选 React Compiler / Redact 依赖时的版本冲突，无需 `legacy-peer-deps` 或关闭 peer 校验。React 使用 ^19.2.8，Vue 与 `@vue/compiler-sfc` 使用匹配的 ^3.5.42 稳定版本，Solid 使用上游验证的 1.9.17。
+脚手架生成的项目默认基于 **[Nasti](https://github.com/zixiao-labs/Nasti/releases/tag/v2.9.0) ^2.9.0**（Rolldown / Oxc 驱动），会接收后续兼容的 2.x 更新。2.9.0 保留 2.8 的原生框架集成与 2.8.1 的 npm 可选 peer 解析修复，并改进 Start 状态保留与开发日志，无需 `legacy-peer-deps` 或关闭 peer 校验。React 使用 ^19.2.8，Vue 与 `@vue/compiler-sfc` 使用匹配的 ^3.5.42 稳定版本，Solid 使用上游验证的 1.9.17。
 
 `react-tanstack` 使用 Nasti 主包内置的 `tanstackRouter()`，不再安装独立的 `@nasti-toolchain/plugin-tanstack`。内置适配不支持自动提取路由组件；模板以 `index.lazy.tsx` / `about.lazy.tsx` 显式保留路由分包。文件路由生成器固定为 `@tanstack/router-generator@1.167.46`，React Router 固定为 1.170.46。
 
@@ -100,11 +100,11 @@ npm run preview
 
 Start 模板直接使用 Nasti 原生 client / SSR 管线，不调用 Vite。默认从 `src/router.tsx` 的 `getRouter()` 和 `src/routes/` 生成入口，不需要 `index.html`；首页包含 server-function loader 和计数器，Solid 文档壳包含 `HydrationScript`。
 
-这两个模板要求 **Node ≥22.12**。按 [Nasti 2.8 官方基线](https://github.com/zixiao-labs/Nasti/blob/v2.8.0/playground/tanstack-react/README.md)，Start runtime 固定为 1.169.4，`@tanstack/start-plugin-core` 固定为 **1.171.55**，`@tanstack/router-generator` 固定为 **1.167.46**。不要单独扩大这些版本范围：Nasti 依赖上游私有编译器契约。所有可选编译器均显式安装在生成的应用内。
+这两个模板要求 **Node ≥22.12**。按 [Nasti 2.9 官方基线](https://github.com/zixiao-labs/Nasti/blob/v2.9.0/playground/tanstack-react/README.md)，Start runtime 固定为 1.169.4，`@tanstack/start-plugin-core` 固定为 **1.171.55**，`@tanstack/router-generator` 固定为 **1.167.46**。不要单独扩大这些版本范围：Nasti 依赖上游私有编译器契约。所有可选编译器均显式安装在生成的应用内。
 
 生产构建输出 `dist/client/` 与 `dist/server/server.mjs`（导出 `{ fetch(request) }`），`nasti preview` 自动提供 SSR。**不要将整个 `dist/` 作为静态目录暴露**，只公开 `dist/client/`。生产平台部署适配由应用负责，preview 不等同于部署插件。
 
-当前 Start 开发模式是全应用重建与整页刷新，不保留组件状态。不包含 RSC、自动路由分包、prerender / SPA mode 或第三方部署插件，也不要再叠加 `tanstackRouter()`。
+Start 开发模式通过原生客户端模块图提供 React / Solid Refresh，兼容的组件更新（含手工 lazy routes）保留状态；server function 与服务端依赖变化会更新服务端 bundle / RPC 清单并刷新 loader 数据，不重载整个页面。路由增删、环境变量变化、不兼容边界或构建错误恢复仍可能整页重载；服务端编译仍是串行完整构建，并非完全增量 SSR。不包含 RSC、自动路由分包、prerender / SPA mode 或第三方部署插件，也不要再叠加 `tanstackRouter()`。
 
 ### Redact（可选）
 

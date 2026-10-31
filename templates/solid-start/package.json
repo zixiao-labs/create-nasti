@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
-    "@nasti-toolchain/nasti": "^2.8.1",
+    "@nasti-toolchain/nasti": "^2.9.0",
     "@tanstack/router-generator": "1.167.46",
     "@tanstack/start-plugin-core": "1.171.55",
     "@types/node": "^22.0.0",

@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
-    "@nasti-toolchain/nasti": "^2.8.1",
+    "@nasti-toolchain/nasti": "^2.9.0",
     "babel-preset-solid": "1.9.16",
     "solid-refresh": "0.7.8",
     "typescript": "^5.7.0"

@@ -85,7 +85,7 @@ for (const template of templates) {
     const project = join(cwd, 'my-app')
     const pkg = JSON.parse(await readFile(join(project, 'package.json'), 'utf8'))
     assert.equal(pkg.name, 'my-app')
-    assert.equal(pkg.devDependencies['@nasti-toolchain/nasti'], '^2.8.1')
+    assert.equal(pkg.devDependencies['@nasti-toolchain/nasti'], '^2.9.0')
     assert.equal(pkg.engines.node, isStart ? '>=22.12.0' : '^20.19.0 || >=22.12.0')
     if (isStart) {
       await assert.rejects(readFile(join(project, 'index.html')), { code: 'ENOENT' })
