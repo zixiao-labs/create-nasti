@@ -1,0 +1,6 @@
+node_modules
+dist
+.nasti
+src/routeTree.gen.ts
+*.tsbuildinfo
+.DS_Store

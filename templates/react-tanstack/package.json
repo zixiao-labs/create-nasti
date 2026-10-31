@@ -13,13 +13,13 @@
     "preview": "nasti preview"
   },
   "dependencies": {
-    "@tanstack/react-router": "^1.170.32",
+    "@tanstack/react-router": "1.170.46",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@nasti-toolchain/nasti": "^2.5.2",
-    "@nasti-toolchain/plugin-tanstack": "^1.0.4",
+    "@nasti-toolchain/nasti": "^2.8.1",
+    "@tanstack/router-generator": "1.167.46",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.7.0"

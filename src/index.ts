@@ -16,13 +16,16 @@ import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { installDependencies, type PackageManager } from './install.js'
 
-type TemplateId = 'react-tanstack' | 'react' | 'vue' | 'electron-react'
+type TemplateId = 'react-tanstack' | 'react' | 'vue' | 'solid' | 'react-start' | 'solid-start' | 'electron-react'
 const PACKAGE_MANAGERS: PackageManager[] = ['npm', 'pnpm', 'yarn', 'bun']
 
 const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
-  { id: 'react-tanstack', label: 'React + TanStack Router', hint: 'file-based routing, build-time auto code-splitting' },
+  { id: 'react-tanstack', label: 'React + TanStack Router', hint: 'native file-based routing, lazy route splitting' },
   { id: 'react', label: 'React', hint: 'minimal single-page app' },
   { id: 'vue', label: 'Vue 3', hint: 'single-file components' },
+  { id: 'solid', label: 'Solid', hint: 'native JSX compilation and Solid Refresh' },
+  { id: 'react-start', label: 'React + TanStack Start', hint: 'native SSR and server functions, Node >=22.12' },
+  { id: 'solid-start', label: 'Solid + TanStack Start', hint: 'native SSR and server functions, Node >=22.12' },
   { id: 'electron-react', label: 'Electron + React', hint: 'Electron 41+ main / preload + React renderer' },
 ]
 
@@ -41,7 +44,7 @@ ${pc.bold('Usage')}
   npm create nasti@latest ${pc.dim('[dir] [options]')}
 
 ${pc.bold('Options')}
-  -t, --template <name>   ${pc.dim('react-tanstack | react | vue | electron-react')}
+  -t, --template <name>   ${pc.dim(TEMPLATES.map((t) => t.id).join(' | '))}
       --pm <name>         ${pc.dim('npm | pnpm | yarn | bun  (default: auto-detect)')}
       --install           ${pc.dim('install dependencies without asking')}
       --no-install        ${pc.dim('skip installing dependencies')}
@@ -175,6 +178,13 @@ async function main(): Promise<void> {
     })
     if (p.isCancel(picked)) bail()
     template = picked
+  }
+
+  if (template === 'react-start' || template === 'solid-start') {
+    const [major, minor] = process.versions.node.split('.').map(Number)
+    if (major < 22 || (major === 22 && minor < 12)) {
+      throw new Error(`The ${template} template requires Node.js >=22.12.0. Current: ${process.versions.node}.`)
+    }
   }
 
   // 4. Scaffold

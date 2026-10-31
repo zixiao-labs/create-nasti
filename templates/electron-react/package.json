@@ -20,7 +20,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@nasti-toolchain/nasti": "^2.5.2",
+    "@nasti-toolchain/nasti": "^2.8.1",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

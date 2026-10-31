@@ -1,0 +1,29 @@
+{
+  "name": "nasti-solid-start-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "nasti dev",
+    "build": "nasti build",
+    "preview": "nasti preview"
+  },
+  "dependencies": {
+    "@tanstack/solid-router": "1.170.43",
+    "@tanstack/solid-start": "1.169.4",
+    "solid-js": "1.9.17"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@nasti-toolchain/nasti": "^2.8.1",
+    "@tanstack/router-generator": "1.167.46",
+    "@tanstack/start-plugin-core": "1.171.55",
+    "@types/node": "^22.0.0",
+    "babel-preset-solid": "1.9.16",
+    "solid-refresh": "0.7.8",
+    "typescript": "^5.7.0"
+  }
+}
